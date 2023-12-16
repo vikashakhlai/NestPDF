@@ -1,0 +1,36 @@
+import {
+	Body,
+	Controller,
+	HttpCode,
+	Post,
+	Query,
+	UploadedFile,
+	UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Auth } from 'src/auth/decorators/auth.decorator';
+import { FileDto } from './file.dto';
+import { FileService } from './file.service';
+
+@Controller('files')
+export class FileController {
+	constructor(private readonly fileService: FileService) {}
+
+	@Post()
+	@HttpCode(200)
+	@Auth()
+	@UseInterceptors(FileInterceptor('file'))
+	async uploadFile(
+		@UploadedFile() file: Express.Multer.File,
+		@Query('folder') folder: string
+	) {
+		return this.fileService.saveFiles([file], folder);
+	}
+
+	@Post('create')
+	@HttpCode(200)
+	@Auth()
+	async createPDF(@Body() dto: FileDto) {
+		return this.fileService.createPDF(dto);
+	}
+}
